@@ -1,0 +1,549 @@
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html;
+   charset=UTF-8"/>
+   <title>OpenDict Add-Ons Development HOWTO</title>
+</head>
+<style>
+body
+{
+    font-family: Verdana, Arial, Sans, sans-serif;
+    font-size: 12px;
+    color: #555;
+}
+
+h1
+{
+    font-size: 26px;
+    text-align: center;
+    font-weight: normal;
+    color: #2b4d85;
+}
+
+h2
+{
+    color: #2b4d85;
+    border-bottom: 1px dashed #2b4d85;
+    margin: 0px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+div.footer
+{
+    text-align: center;
+    font-size: 10px;
+    background-color: #EEE;
+    border: 1px solid #D9D9D9;
+    color: #AAA;
+}
+
+a
+{
+    color: #2b4d85;
+}
+
+a:active, a:hover
+{
+    background-color: #DDD;
+}
+
+pre.file-contents
+{
+    border: 1px solid #AAA;
+    margin-left: 30px;
+    width: 600px;
+    background-color: #EEE;
+}
+
+table
+{
+    font: inherit;
+    border: 1px solid #AAA;
+    border-collapse: collapse;
+    margin-left: 30px;
+    width: 600px;
+}
+
+table td, table, th
+{
+    border: 1px solid #DDD;
+    padding: 5px;
+}
+</style>
+<body>
+<h1>OpenDict Add-Ons Development HOWTO</h1>
+
+<h2>Introduction</h2>
+<p>
+OpenDict is free multiplatform dictionary. More information about it
+can be found on <a href="http://opendict.idiles.com">OpenDict website</a>.
+</p>
+<p>
+This document is written for developers who want to make
+easy-installable OpenDict dictionaries.
+</p>
+<p>
+<i><b>Warning:</b> It is not necessary to make OpenDict dictionary if you
+have a dictionary file in Slowo, Mova or DICT format. Such
+dictionaries can be used right now by selecting <u>Dictionaries ->
+Install Dictionary from File</u> from OpenDict menu.</i>
+</p>
+
+<h2>Types of OpenDict Dictionaries</h2>
+<p>
+OpenDict has two types of dictionaries: <i>plain</i> (simple) dictionaries and 
+<i>plugin</i> (complex)
+dictionaries. <i>Plain</i> dictionaries consists of dictionary file (type of
+that dictionary must be supported by OpenDict) and description file in
+XML format. <i>Plugin</i> dictionaries consists of Python module with code
+that handles search process and description file in XML format; it
+may also have dictionary file which is processed by Python module
+mentioned above.
+</p>
+<p>
+Plain dictionaries are simple and handy. It is very easy to install
+them using OpenDict itself. If you have dictionary file (format of
+that dictionary must be supported by OpenDict) and want to attach some
+information to it, like the name, the author, the description, you may
+want to make <i>plain</i> dictionary.
+</p>
+<p>
+If you have more complex task, like search the web, etc, you may want
+to make a <i>plugin</i> for OpenDict. The plugin is a chunk of code
+written in <a href="http://www.python.org">Python</a> programming
+language that OpenDict attaches to itself at runtime.
+</p>
+<p>
+The next sections of this document will describe how to make
+<i>plain</i> dictionaries and <i>plugins</i>.
+</p>
+
+<h2>Plain Dictionary Example</h2>
+<p>
+Assume we have a small dictionary file named <i>mydict.dwa</i> in Slowo
+format:
+</p>
+
+<pre class="file-contents">
+above = ant ; virš ;
+abroad = visur ; užsienyje ;
+acoustic = akustinis ;
+acquaint = pranešti ;
+</pre>
+
+<p>
+Say we want to call this dictionary "My Personal Dictionary" and
+attacht a description "This is my personal dictionary. It is very
+small, but it is not the size that matters :)" to it.
+<i>Each</i> plain dictionary must have XML description file named
+<i>config.xml</i>, otherwise it will be treated as invalid dictionary. So we
+write an XML file called config.xml with our favorite text or XML editor: 
+</p>
+
+<pre class="file-contents">
+&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;plain-dictionary&gt;
+  &lt;format&gt;slowo&lt;/format&gt;
+  &lt;name&gt;My Personal Dictionarys&lt;/name&gt;
+  &lt;version&gt;0.1&lt;/version&gt;
+  &lt;authors&gt;
+     &lt;author name="Your Name" email="your@email.tdl"/&gt;
+  &lt;/authors&gt;
+  &lt;path&gt;mydict.dwa&lt;/path&gt;
+  &lt;md5&gt;9c62810c32ca20fe018b79987789daef&lt;/md5&gt;
+  &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+  &lt;description&gt;&lt;![CDATA[
+     This is my personal dictionary. It is very small, but it is not the
+     size that matters :)
+  ]]&gt;
+  &lt;/description&gt;
+&lt;/plain-dictionary&gt;
+</pre>
+
+<p>
+As you can see, a little more information must be added to description
+(i.e. configuration) file. Here is a short description of each section:
+</p>
+
+<table>
+<tr>
+    <th>XML tag</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <td>format</td>
+    <td>Dictionary format. OpenDict supports the following formats:
+        <ul>
+	    <li>slowo -- Slowo format</li>
+	    <li>mova -- Mova format</li>
+	    <li>dict -- DICT format</li>
+	</ul>
+	<i>TODO: describe all supported format somewhere</i>
+    </td>
+</tr>
+<tr>
+    <td>name</td>
+    <td>Name of the dictionary. It will be shown in the
+    <i>Dictionaries</i> menu in OpenDict window.
+</td>
+</tr>
+<tr>
+    <td>version</td>
+    <td>Version value is very important. It shows the freshness of
+    your dictionary. The more recent the dictionary, the greater
+    version value must be set. For example: 0.1, 0.2, 0.3, etc; or 1,
+    2, 3, etc.</td>
+</tr>
+<tr>
+    <td>author</td>
+    <td>
+    <p>The author of the dictionary. Notice that <i>author</i> tag is
+    inside <i>authors</i> tag, because there may be several
+    authors of the dictionary. So add as may <i>author</i> tags as you
+    want, but make them the childs of the <i>authors</i> tag.</p>
+
+    <p>This tag is a bit complicated, because you may not be the
+    author of the dictionary file you are using. If so, you may treat
+    the <i>author</i> tag as maintainance tag and write your <i>as
+    maintainer</i> name inside it. In addition to this, you should
+    write the name of the author in the <i>description</i> tag
+    mentioned below.
+</td>
+</tr>
+<tr>
+    <td>path</td>
+    <td>Path to the dictionary file. It may be an absolute (i.e. full)
+    path to the dictionary file or relative path. If you write full
+    path, dictionary would be taken from there. Buf if you write only
+    the name of the dictionary (i.e. mydict.dwa), the dictionary will
+    be treated to be located at <i>$DICTDIR/file/mydict.dwa</i>, where
+    $DICTDIR is directory where you dictionary is located, for example
+    <i>/home/mjoc/.opendict/dictionaries/plain/mydict.dwa/file/mydict.dwa</i>.
+    If you are going to distribute dictionary file <i>with OpenDict
+    plain dictionary</i>, you want to write only the file name inside
+    <i>path</i> tag.
+</td>
+</tr>
+<tr>
+    <td>md5</td>
+    <td>This is an MD5 checksum value of the dictionary file
+    (i.e. mydict.dwa). This MD5 code is used to determine changes 
+    of the dictionary file. That means user is able to modify
+    dictionary file and OpenDict will recreate <i>index table</i>
+    before using that dictionary next time. If you want to get MD5
+    checksum value of you dictionary file, execute the following
+    command on your system (Linux, BSD) shell:
+    <pre>
+        $ md5sum myfile.dwa
+	9c62810c32ca20fe018b79987789daef  myfile.dwa
+    </pre>
+    You can see the command and the output above. Just copy that
+    32-chars checksum to your XML file. <i>This is quite unfriendly,
+    so I will think about easer ways some day. Nevertheless, we are 
+    developers today.</i>
+    </td>
+</tr>
+<tr>
+    <td>encoding</td>
+    <td>Character encoding of the dictionary file. Examples: UTF-8,
+    UTF-16, ISO-8859-1, ISO-8859-13, etc.</td>
+</tr>
+<tr>
+    <td>description</td>
+    <td>Description of your dictionary. You should not remove that 
+    <i>&lt;![CDATA[ ... ]]&gt;</i> tag, because it lets you to write
+    any text inside using even XML (HTML) tags like <i>1 + 1 &lt;
+    1</i> or <i>&lt;myemail@abcdef.tdl&gt;</i>
+</td>
+</tr>
+</table>
+
+<p>
+The last file you need is an <i>index</i> file. This file contains
+index table of the dictionary describing in what position what letter
+begins. Index makes search <i>a lot faster</i>.
+</p>
+
+<p>
+I do not recommend writing index file using your fingers and the
+keyboard :), so we will use OpenDict to make one for ourselves. Lets
+now make a directory tree containing these files and directories:
+</p>
+
+<pre>
+mydict.dwa/
+    |
+    +-- conf/
+    |     |
+    |     +-- config.xml
+    |
+    +-- data/
+    |     
+    |
+    +-- file/
+          |
+          +-- mydict.dwa
+</pre>
+
+<p>
+As you see, the root direcory is called <i>mydict.dwa</i>, the same as
+dictionary file is called. This is <i>the rule</i>. Now move that
+directory to the directory where all the plain dictionaries are
+located. On my machine I would do:
+</p>
+
+<pre>
+    mjoc@kumo:~/tmp/dict-factory$ <i>mv mydict.dwa/ ~/.opendict/dictionaries/plain/</i>
+</pre>
+
+<p>
+After that you should start OpenDict and load the dictionary you've
+just made. If everything goes well, you will be informed about
+reindexing the dictionary. Press <i>OK</i> and, if everything goes
+well, you will have index.xml file located at data/ directory. On my
+machine the full path would be
+<i>/home/mjoc/.opendict/dictionaries/plain/mydict.dwa/data/index.xml</i>. 
+Now the directory tree look in a way like that:
+</p>
+
+<pre>
+mydict.dwa/
+    |
+    +-- conf/
+    |     |
+    |     +-- config.xml
+    |
+    +-- data/
+    |     |
+    |     +-- index.xml
+    |
+    +-- file/
+          |
+          +-- mydict.dwa
+</pre>
+
+<p>
+Now we have all the files needed. They are located at $DICTDIR. The
+last step is to make a ZIP archive of that directory. Notice that that
+ZIP file must contain the dictionary directory (i.e. mydict.dwa/)
+itself, not only files inside it. To zip the directory, I would do: 
+</p>
+
+<pre>
+    mjoc@kumo:~/tmp/dict-factory$ cd ~/.opendict/dictionaries/plain/
+    mjoc@kumo:~/.opendict/dictionaries/plain$ zip -r MyDictionary-0.1.zip mydict.dwa/
+    mjoc@kumo:~/.opendict/dictionaries/plain$ mv MyDictionary-0.1.zip ~
+    mjoc@kumo:~/.opendict/dictionaries/plain$ cd
+</pre>
+
+<p>
+Now file <i>MyDictionary-0.1.zip</i> can be found at my home direcory 
+(/home/mjoc/). That's all. Now you have made a dictionary that can be
+installed by everyone using OpenDict by selecting <i>Dictionaries ->
+Install Dictionary from File</i> from the menu.
+</p>
+
+<h2>Simple Plugin Example</h2>
+<p>
+In this section I am going to give an example of simple OpenDict
+plugin dictionary. Good example is a network dictionary plugin that
+fetches translations from the web and processed them locally.
+</p>
+
+<p>
+At first we have to create file called <i>plugin.xml</i>. The contents
+of this file may be similar to this one:
+</p>
+
+<pre class="file-contents">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;plugin type="dictionary"&gt;
+   &lt;name&gt;Network Test&lt;/name&gt;
+   &lt;version&gt;0.1&lt;/version&gt;
+   &lt;authors&gt;
+      &lt;author name="Martynas Jocius" email="mjoc@akl.lt" /&gt;
+   &lt;/authors&gt;
+   &lt;module lang="Python"&gt;mydict.py&lt;/module&gt;
+   &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+   &lt;uses-word-list&gt;False&lt;/uses-word-list&gt;
+   &lt;opendict-version&gt;0.5.7&lt;/opendict-version&gt;
+   &lt;python-version&gt;2.3&lt;/python-version&gt;
+   &lt;platforms&gt;
+      &lt;platform name="Linux" /&gt;
+      &lt;platform name="BSD" /&gt;
+      &lt;platform name="Windows" /&gt;
+   &lt;/platforms&gt;
+   &lt;description&gt;
+   Example plugin dictioary. Does nothing.
+   &lt;/description&gt;
+&lt;/plugin&gt;
+</pre>
+
+<p>
+As you may already noticed, some XML tags are the same as in the
+previous <i>config.xml</i> example. There is the description of new
+tags, like <i>encoding</i>, <i>module</i>, etc.
+</p>
+
+<table>
+<tr>
+    <th>XML tag</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <td>module</td>
+    <td>Main <a href="http://www.python.org">Python</a> module file name.</td>
+</tr>
+<tr>
+    <td>encoding</td>
+    <td>Character encoding of the result string that plugin module
+    returns (examples include UTF-8, ISO-8859-15, etc)</td>
+</tr>
+<tr>
+    <td>uses-word-list</td>
+    <td>This should be set to <i>True</i> if dictionary needs word
+    list to be shown, <i>False</i> otherwise. If dictionary uses word
+    list, it must return a list of alternative words in addition with
+    translation string (<i>see below for more information</i>)</td>
+</tr>
+<tr>
+    <td>opendict-version</td>
+    <td>The lowest OpenDict version plugin requires, for example
+    0.5.1, 0.5.7, etc. This is important when plugin structure is
+    different from one that old OpenDict versions provide (for example 0.5.1
+    and 0.5.7 plugin structure differs a lot)</td>
+</tr>
+<tr>
+    <td>python-version</td>
+    <td>The lowest Python version that plugin requires.</td>
+</tr>
+<tr>
+    <td>python-version</td>
+    <td>The lowest Python version that plugin requires.</td>
+</tr>
+<tr>
+    <td>platforms</td>
+    <td>Parent node for <i>platform</i> tag.</td>
+</tr>
+<tr>
+    <td>platform</td>
+    <td>This tag with attribute <i>name</i> value X means that this
+    plugin is tested and works on platform X. For example, Linux, BSD,
+    MacOS. <i>Currently not used</i></td>
+</tr>
+</table>
+
+<p>
+Now we should write the main module in Python programming
+language. Module file name is <i>mydict.py</i> as we called it in
+<i>plugin.xml</i>. The following code might be correct OpenDict plugin:
+</p>
+
+<pre class="file-contents">
+#!/usr/bin/env python
+
+#
+# MyDict 0.1
+# Copyright (c) 2005 Matynas Jocius &lt;mjoc@akl.lt&gt;
+#
+# Simple plugin dictionary for OpenDict.
+#
+# This code is licensed under the GNU GPL v2.
+#
+
+"""
+Simple OpenDict plugin module
+"""
+
+import sys
+import httplib
+import urllib
+
+
+def init(libraryPath):
+    """Return dictionary instance"""
+
+    sys.path.insert(0, libraryPath)
+
+    return MyDict()
+
+
+
+class MyDict:
+    """MyDict plugin class"""
+    
+    def __init__(self):
+        """Initialize variables"""
+
+        # This trick is needed to have accessible modules from
+        # OpenDict library
+        from lib import errortype, meta
+
+        self.errorModule = errortype
+        self.metaModule = meta
+
+        
+    def search(self, word):
+        """Search and return HTML code."""
+
+        print type(word), len(word)
+
+        result = self.metaModule.SearchResult()
+
+        try:
+            self.conn = httplib.HTTPConnection("mjoc.sig.lt")
+            self.conn.request("GET", "/index.html")
+            response = self.conn.getresponse()
+            data = response.read()
+
+            trans = "&lt;html&gt;&lt;body&gt;&lt;h3&gt;"
+
+            if word in data:
+                trans += "Word &lt;i&gt;%s&lt;/i&gt; was found on " \
+                         "http://mjoc.sig.lt/index.html" % word
+            else:
+                trans += "Word &lt;i&gt;%s&lt;/i&gt; was not found on " \
+                         "http://mjoc.sig.lt/index.html" % word
+
+            trans += "&lt;/h3&gt;&lt;/body&gt;&lt;/html&gt;"
+
+            result.setTranslation(trans)
+
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+
+            result.setError(self.errorModule.INTERNAL_ERROR)
+
+            return result
+
+        return result
+
+</pre>
+
+<p>
+<i>TODO: describe how to write the class and other details.</i>
+</p>
+
+<p>
+To make an installable plugin file in ZIP archive format, move
+<i>plugin.xml</i> and <i>mydict.py</i> into some directory
+(i.e. <i>mydict-0.1</i>) and zip that directory. After performing
+these actions your new OpenDict plugin will be ready to be installed.
+</p>
+
+
+<h2>Conclusion</h2>
+<p>
+<i>TODO: This document is very short and fuzzy. It must be improved in
+the future.</i>
+</p>
+
+<div class="footer">Copyright &copy; 2005 
+<a href="mailto:mjoc@akl.lt">Martynas Jocius</a>
+ -- Last modified: 2005-09-06 22:57
+</div>
+
+</body>
+</html>
